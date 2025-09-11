@@ -1,42 +1,43 @@
+from langchain_community.embeddings import HuggingFaceEmbeddings
 import os
-from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
-from langchain.llms import OpenAI
+from langchain.llms import Ollama
 from langchain.chains import RetrievalQA
-from langchain.document_loaders import DirectoryLoader, TextLoader
-from langchain.document_loaders import FileValidator
-from langchain.document_loaders import PDFLoader, UnstructuredHTMLLoader
+from langchain.document_loaders import DirectoryLoader
+from transformers import pipeline
+from langchain_community.llms import HuggingFacePipeline
 
-# Set your OpenAI API key
-os.environ["OPENAI_API_KEY"] = "your-openai-api-key"
+from sentence_transformers import SentenceTransformer
+from langchain.embeddings import SentenceTransformerEmbeddings
 
-# Get current working directory
+from src.loaders import DocumentLoader
+from src.models import ModelFactory
+
 CWD = os.getcwd()
+WATCH_DIR = os.path.join(CWD, "target")
 
-# Directory to watch
-WATCH_DIR = os.join(CWD, "target")  # Change to your target directory
-
-# Load all text files from the directory
-
-
-def get_loader_cls(path):
-    if path.lower().endswith(".pdf"):
-        return PDFLoader(path)
-    elif path.lower().endswith(".html"):
-        return UnstructuredHTMLLoader(path)
-    else:
-        return TextLoader(path)
-
-
-loader = DirectoryLoader(WATCH_DIR, loader_cls=get_loader_cls)
+loader = DirectoryLoader(WATCH_DIR, loader_cls=DocumentLoader)
 documents = loader.load()
 
-# Create embeddings and vector store
-embeddings = OpenAIEmbeddings()
+print(f"Loaded {len(documents)} documents")  # Debugging
+
+if not documents:
+    print("No documents found. Please add supported files to the target directory.")
+    exit(1)
+
+embeddings = HuggingFaceEmbeddings(
+    model_name="sentence-transformers/all-mpnet-base-v2",
+    model_kwargs={'device': 'cpu'},
+    encode_kwargs={'normalize_embeddings': False}
+)
+
 vector_store = FAISS.from_documents(documents, embeddings)
 
-# Set up retrieval QA chain
-llm = OpenAI(temperature=0)
+# Use a local model for offline inference
+# You can use any local model
+local_pipeline = pipeline("text-generation", model="distilgpt2")
+llm = HuggingFacePipeline(pipeline=local_pipeline)
+
 qa_chain = RetrievalQA.from_chain_type(
     llm=llm,
     chain_type="stuff",
@@ -45,8 +46,7 @@ qa_chain = RetrievalQA.from_chain_type(
 
 
 def answer_query(query: str):
-    """Respond to a query using indexed documents."""
-    return qa_chain.run(query)
+    return qa_chain.invoke({"query": query})
 
 
 if __name__ == "__main__":
