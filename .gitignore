@@ -53,4 +53,6 @@ pip-delete-this-directory.txt
 
 # Others
 *.sqlite3
-*.db
+*.dbfaiss_index/
+*.pkl
+*.faiss
