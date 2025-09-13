@@ -9,11 +9,23 @@ This project enables intuitive searching of local files and documentation using 
 - **Vector Store Backend:** Fast and accurate search results using vector embeddings.
 - **Local File Support:** Works with files stored on your local machine.
 
-## Getting Started
+## Prerequisites
+
+This project requires both Ollama and LangChain:
+
+- **Ollama and LangChain:** Install and set up [Ollama](https://python.langchain.com/docs/integrations/llms/ollama/#setup) and ensure [LangChain](https://python.langchain.com/docs/) is installed as a Python dependency.
+
+Refer to the official documentation for instructions on configuring Ollama with LangChain.
+
+## Get Started
 
 1. Clone this repository.
 2. Install dependencies.
 3. Run the application and start searching your local files with natural language queries.
+
+## Usage and Example
+
+Simply type a question in the terminal, and the system will search your local files and documentation, returning relevant answers with source references.
 
 ```bash
 $ KMP_DUPLICATE_LIB_OK=TRUE python main.py
@@ -29,21 +41,6 @@ Sources:
 * .../FYI/target/sample3.html (1)
 * .../FYI/target/sample2.html (1) 
 ```
-
-## Setting Environment Variables
-
-Before running the application, export the required environment variables in your terminal:
-
-```bash
-export HF_HOME=~/.cache/huggingface
-export HF_AUTH_TOKEN=your_api_key_here
-```
-
-Replace the values with your actual API key and vector store path.
-
-## Usage
-
-Simply type your query (e.g., "Show me the documentation for the authentication module") and the system will locate the relevant files and content.
 
 ## License
 
