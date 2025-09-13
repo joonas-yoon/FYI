@@ -2,9 +2,9 @@ import os
 import time
 
 from langchain_ollama import OllamaLLM, OllamaEmbeddings
-from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS
+from langchain_community.document_loaders import DirectoryLoader
 from langchain.chains import RetrievalQA
-from langchain.document_loaders import DirectoryLoader
 
 from src.loaders import DocumentLoader
 from src.summerize import Summerize
@@ -12,10 +12,17 @@ from src.utils import Path, humanize_seconds
 
 
 CWD = os.path.dirname(os.path.abspath(__file__))
-WATCH_DIR = Path(CWD, "target")
+WATCH_DIR = Path(CWD, "examples/")
 FAISS_DIR = Path(CWD, "faiss_index")
+FAISS_INDEX_NAME = WATCH_DIR.replace("/", "_").replace("\\", "_").strip("_")
 
-loader = DirectoryLoader(WATCH_DIR, loader_cls=DocumentLoader)
+loader = DirectoryLoader(WATCH_DIR,
+                         loader_cls=DocumentLoader,
+                         loader_kwargs={"excludes": [
+                             ".git/", "img/", "assets/"]},
+                         show_progress=True,
+                         use_multithreading=True,
+                         recursive=True)
 documents = loader.load()
 
 print(f"Loaded {len(documents)} documents...\n")  # Debugging
@@ -34,13 +41,14 @@ try:
         FAISS_DIR,
         embeddings,
         allow_dangerous_deserialization=True,
+        index_name=FAISS_INDEX_NAME,
     )
     print("Loaded existing FAISS index.")
 except Exception as e:
-    print(f"Failed to load existing FAISS index")
+    print(f"Failed to load existing FAISS index", e)
     print("Creating a new FAISS index...")
     vector_store = FAISS.from_documents(documents, embeddings)
-    vector_store.save_local(FAISS_DIR)
+    vector_store.save_local(FAISS_DIR, index_name=FAISS_INDEX_NAME)
 
 # Use OllamaLLM for local LLM inference
 llm = OllamaLLM(
