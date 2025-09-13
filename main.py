@@ -1,4 +1,5 @@
 import os
+import time
 
 from langchain_ollama import OllamaLLM, OllamaEmbeddings
 from langchain.vectorstores import FAISS
@@ -6,8 +7,8 @@ from langchain.chains import RetrievalQA
 from langchain.document_loaders import DirectoryLoader
 
 from src.loaders import DocumentLoader
+from src.summerize import Summerize
 from src.utils import Path, humanize_seconds
-import time
 
 
 CWD = os.path.dirname(os.path.abspath(__file__))
@@ -61,7 +62,7 @@ def answer_query(query: str):
 
 if __name__ == "__main__":
     while True:
-        user_query = input("Ask a question: ")
+        user_query = input("> Ask a question: ")
         if user_query.lower() in ["exit", "quit"]:
             break
 
@@ -69,5 +70,6 @@ if __name__ == "__main__":
         answer = answer_query(user_query)
         elapsed = time.time() - start_time
 
-        print("Answer:", answer)
+        print("=" * 40)
         print("[", humanize_seconds(elapsed), "]\n")
+        print(Summerize(answer), "\n")
