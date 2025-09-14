@@ -1,6 +1,6 @@
 
-from pydantic import BaseModel
 from langchain_core.documents.base import Document
+from pydantic import BaseModel
 
 
 class AnswerDict(BaseModel):

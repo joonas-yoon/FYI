@@ -25,10 +25,12 @@ Refer to the official documentation for instructions on configuring Ollama with 
 
 ## Usage and Example
 
+**Run CLI in Terminal:**
+
 Simply type a question in the terminal, and the system will search your local files and documentation, returning relevant answers with source references.
 
 ```bash
-$ KMP_DUPLICATE_LIB_OK=TRUE python main.py
+$ KMP_DUPLICATE_LIB_OK=TRUE python cli.py
 > Ask a question: what is a rapidly evolving field in my case?
 ========================================
 [ 1.49 secs ]
@@ -40,6 +42,18 @@ Sources:
 * .../FYI/target/sample5.html (1)
 * .../FYI/target/sample3.html (1)
 * .../FYI/target/sample2.html (1) 
+```
+
+**Run FastAPI Application to response via REST API:**
+
+```bash
+$ fastapi run watcher.py
+```
+
+```bash
+$ curl -X POST "http://127.0.0.1:8000/search/" \
+  -H "Content-Type: application/json" \
+  -d '{"q": "what is a rapidly evolving field in my case?"}'
 ```
 
 ## License

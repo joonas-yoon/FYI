@@ -1,18 +1,17 @@
 
 import os
-import time
 
 from langchain.chains import RetrievalQA
 
 from src.setups import load_embedding_model, load_llm_model, setup_documents, setup_vector_store
-from src.summerize import Summerize
 from src.types import AnswerDict
-from src.utils import Path, humanize_seconds
+from src.utils import Path
 
 
 CWD = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = Path(CWD, "..")
 
-WATCH_DIR = Path(CWD, "examples/")
+WATCH_DIR = Path(BASE_DIR, "examples/")
 
 
 documents = setup_documents(WATCH_DIR)
@@ -28,7 +27,7 @@ llm = load_llm_model()
 vector_store = setup_vector_store(
     documents=documents,
     embeddings=embeddings,
-    save_dir=Path(CWD, "faiss_index"),
+    save_dir=Path(BASE_DIR, "faiss_index"),
     index_name=WATCH_DIR.replace("/", "_").replace("\\", "_").strip("_")
 )
 
@@ -42,19 +41,3 @@ qa_chain = RetrievalQA.from_chain_type(
 
 def answer_query(query: str) -> AnswerDict:
     return qa_chain.invoke({"query": query})
-
-
-if __name__ == "__main__":
-
-    while True:
-        user_query = input("> Ask a question: ")
-        if user_query.lower() in ["exit", "quit"]:
-            break
-
-        start_time = time.time()
-        answer = answer_query(user_query)
-        elapsed = time.time() - start_time
-
-        print("=" * 40)
-        print("[", humanize_seconds(elapsed), "]\n")
-        print(Summerize(answer), "\n")
