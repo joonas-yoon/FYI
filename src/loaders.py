@@ -50,28 +50,24 @@ def is_json(path) -> bool:
 
 
 def AutoLoader(path) -> BaseLoader:
-    try:
-        if is_pdf(path):
-            return PyPDFLoader(path, mode="single")
-        elif is_html(path):
-            return UnstructuredHTMLLoader(path)
-        elif is_text(path):
-            return TextLoader(path, autodetect_encoding=True)
-        elif is_markdown(path):
-            return UnstructuredMarkdownLoader(path,
-                                              mode="elements",
-                                              strategy="fast")
-        elif is_csv(path):
-            return UnstructuredCSVLoader(path)
-        elif is_image(path):
-            return UnstructuredImageLoader(path)
-        elif is_json(path):
-            return JSONLoader(path)
-        else:
-            print(path, "is unexpected")
-            return DummyLoader()
-    except Exception as e:
-        print("Failed to load:", path, e)
+    if is_pdf(path):
+        return PyPDFLoader(path, mode="single")
+    elif is_html(path):
+        return UnstructuredHTMLLoader(path)
+    elif is_text(path):
+        return TextLoader(path, autodetect_encoding=True)
+    elif is_markdown(path):
+        return UnstructuredMarkdownLoader(path,
+                                          mode="elements",
+                                          strategy="fast")
+    elif is_csv(path):
+        return UnstructuredCSVLoader(path)
+    elif is_image(path):
+        return UnstructuredImageLoader(path)
+    elif is_json(path):
+        return JSONLoader(path)
+    else:
+        print(path, "is unexpected")
         return DummyLoader()
 
 
@@ -81,8 +77,13 @@ class DocumentLoader(BaseLoader):
         self.excludes: list[str] = kwargs.get("excludes", [])
 
     def load(self) -> list[Document]:
+        path = self.file_path
         for pattern in self.excludes:
-            if re.search(pattern, self.file_path):
+            if re.search(pattern, path):
                 return []  # Return empty list if match found
 
-        return AutoLoader(self.file_path).load()
+        try:
+            return AutoLoader(path).load()
+        except Exception as e:
+            print("Failed to load:", path, e)
+            return []

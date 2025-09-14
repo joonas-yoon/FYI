@@ -1,16 +1,10 @@
 from collections import Counter
-from pydantic import BaseModel
-from langchain_core.documents.base import Document
 
-
-class AnswerDict(BaseModel):
-    query: str
-    result: str
-    source_documents: list[Document]
+from src.types import AnswerDict
 
 
 class Summerize:
-    def __init__(self, answer: dict):
+    def __init__(self, answer: AnswerDict | dict):
         self.answer = AnswerDict(**answer)
         self.query = self.answer.query
         self.result = self.answer.result

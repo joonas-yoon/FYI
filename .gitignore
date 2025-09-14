@@ -52,6 +52,7 @@ pip-delete-this-directory.txt
 .pyre/
 
 # Others
+db/
 *.sqlite3
 *.dbfaiss_index/
 *.pkl

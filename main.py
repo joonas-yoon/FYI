@@ -1,59 +1,35 @@
+
 import os
 import time
 
-from langchain_ollama import OllamaLLM, OllamaEmbeddings
-from langchain_community.vectorstores import FAISS
-from langchain_community.document_loaders import DirectoryLoader
 from langchain.chains import RetrievalQA
 
-from src.loaders import DocumentLoader
+from src.setups import load_embedding_model, load_llm_model, setup_documents, setup_vector_store
 from src.summerize import Summerize
+from src.types import AnswerDict
 from src.utils import Path, humanize_seconds
 
 
 CWD = os.path.dirname(os.path.abspath(__file__))
+
 WATCH_DIR = Path(CWD, "examples/")
-FAISS_DIR = Path(CWD, "faiss_index")
-FAISS_INDEX_NAME = WATCH_DIR.replace("/", "_").replace("\\", "_").strip("_")
 
-loader = DirectoryLoader(WATCH_DIR,
-                         loader_cls=DocumentLoader,
-                         loader_kwargs={"excludes": [
-                             ".git/", "img/", "assets/"]},
-                         show_progress=True,
-                         use_multithreading=True,
-                         recursive=True)
-documents = loader.load()
 
+documents = setup_documents(WATCH_DIR)
 print(f"Loaded {len(documents)} documents...\n")  # Debugging
 
 if not documents:
     print("No documents found. Please add supported files to the target directory.")
     exit(1)
 
-# Use OllamaEmbeddings for local embedding
-embeddings = OllamaEmbeddings(
-    model="embeddinggemma:300m",
-)
+embeddings = load_embedding_model()
+llm = load_llm_model()
 
-try:
-    vector_store = FAISS.load_local(
-        FAISS_DIR,
-        embeddings,
-        allow_dangerous_deserialization=True,
-        index_name=FAISS_INDEX_NAME,
-    )
-    print("Loaded existing FAISS index.")
-except Exception as e:
-    print(f"Failed to load existing FAISS index", e)
-    print("Creating a new FAISS index...")
-    vector_store = FAISS.from_documents(documents, embeddings)
-    vector_store.save_local(FAISS_DIR, index_name=FAISS_INDEX_NAME)
-
-# Use OllamaLLM for local LLM inference
-llm = OllamaLLM(
-    model="gemma3:1b",
-    system="You are an expert assistant to search information with given documents."
+vector_store = setup_vector_store(
+    documents=documents,
+    embeddings=embeddings,
+    save_dir=Path(CWD, "faiss_index"),
+    index_name=WATCH_DIR.replace("/", "_").replace("\\", "_").strip("_")
 )
 
 qa_chain = RetrievalQA.from_chain_type(
@@ -64,11 +40,12 @@ qa_chain = RetrievalQA.from_chain_type(
 )
 
 
-def answer_query(query: str):
+def answer_query(query: str) -> AnswerDict:
     return qa_chain.invoke({"query": query})
 
 
 if __name__ == "__main__":
+
     while True:
         user_query = input("> Ask a question: ")
         if user_query.lower() in ["exit", "quit"]:
