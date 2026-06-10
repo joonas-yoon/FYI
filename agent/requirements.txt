@@ -10,6 +10,7 @@ langchain-core>=1.0
 langchain-classic>=1.0  # 1.0에서 분리된 레거시 RAG 체인(create_retrieval_chain 등) 제공 (rag.py)
 langchain-text-splitters>=0.3
 langchain-anthropic>=0.3
+langchain-ollama>=0.2  # 로컬 Ollama LLM/임베딩 (llm.py, embeddings.py 의 ollama 분기)
 langchain-huggingface>=0.1
 langchain-chroma>=0.1.4
 chromadb>=0.5

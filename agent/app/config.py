@@ -30,16 +30,25 @@ class Settings(BaseSettings):
     api_port: int = 8000
     cors_origins: list[str] = ["*"]
 
+    # --- 프로바이더 선택 ---
+    llm_provider: str = "anthropic"  # anthropic | ollama
+    embedding_provider: str = "huggingface"  # huggingface | ollama
+
     # --- Anthropic / LLM ---
     anthropic_api_key: str = Field(default="", repr=False)
     llm_model: str = "claude-sonnet-4-6"
     llm_temperature: float = 0.0
     llm_max_tokens: int = 1024
 
-    # --- 임베딩 ---
+    # --- 임베딩 (huggingface) ---
     embedding_model: str = "BAAI/bge-m3"
     embedding_device: str = "auto"  # auto | cuda | cpu
     embedding_batch_size: int = 32
+
+    # --- Ollama (llm_provider/embedding_provider 가 ollama 일 때 사용) ---
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_llm_model: str = "gemma3:1b"
+    ollama_embedding_model: str = "embeddinggemma:300m"
 
     # --- 위키 문서 ---
     wiki_path: Path = Path("/data/wiki")
