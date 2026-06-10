@@ -22,6 +22,32 @@ class ChatResponse(BaseModel):
     sources: list[Source] = Field(default_factory=list, description="참고한 문서 목록")
 
 
+class SourceDocument(BaseModel):
+    """AnswerDict 의 source_documents 항목 (루트 FYI 응답 형태 유지)."""
+
+    metadata: dict = Field(default_factory=dict, description="문서 메타데이터(source/title 등)")
+    page_content: str = Field("", description="문서 청크 본문")
+
+
+class SearchRequest(BaseModel):
+    q: str = Field(..., description="검색 질의", examples=["프리츠 하버는 누구인가요?"])
+    session_id: str | None = Field(
+        None, description="대화 세션 ID. 지정하면 멀티턴 컨텍스트가 유지됩니다. 미지정 시 단일턴."
+    )
+    summarize: bool = Field(
+        False, description="참고 문서 요약(다이제스트)을 summary 필드로 함께 반환할지"
+    )
+
+
+class SearchResponse(BaseModel):
+    """AnswerDict 형태 유지: query / result / source_documents (+ 선택적 summary)."""
+
+    query: str
+    result: str
+    source_documents: list[SourceDocument] = Field(default_factory=list)
+    summary: str | None = Field(None, description="summarize=True 일 때의 요약 다이제스트")
+
+
 class IngestRequest(BaseModel):
     reset: bool = Field(False, description="기존 인덱스를 비우고 처음부터 재색인할지 여부")
 

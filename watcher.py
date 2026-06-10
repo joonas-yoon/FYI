@@ -1,51 +1,17 @@
-from pydantic import BaseModel
-from fastapi import FastAPI
-from fastapi.params import Body
-from fastapi.responses import JSONResponse
+"""루트 FastAPI 엔트리포인트.
 
-from src.search import answer_query
-from src.types import AnswerDict
+FYI 와 agent 는 하나의 앱으로 통합되었다. 검색/요약/대화/인덱싱 라우트는 모두 단일
+RAG 엔진 앱(``app.main``)이 제공한다. 이 모듈은 기존 실행 명령
+``fastapi run watcher.py`` 호환성을 위해 그 앱을 그대로 재노출한다.
 
+제공 엔드포인트:
+    POST /search   검색 + (선택)요약(summarize) + (선택)컨텍스트 대화(session_id)
+                   → AnswerDict 형태: {query, result, source_documents, summary?}
+    POST /chat     멀티턴 대화
+    POST /ingest   문서 인덱싱
+    GET  /health   헬스체크
+"""
 
-app = FastAPI()
+from app.main import app
 
-
-class SearchRequest(BaseModel):
-    q: str = Body(..., description="The search query string")
-    session_id: str | None = Body(
-        default=None,
-        description="대화 세션 ID. 지정하면 멀티턴 이력이 유지됩니다. 미지정 시 단일턴.",
-    )
-
-
-class DocumenrResponseModel(BaseModel):
-    metadata: dict
-    page_content: str
-
-
-class SearchResponse(BaseModel):
-    query: str
-    result: str
-    source_documents: list[DocumenrResponseModel]
-
-
-class SearchResultAdapter:
-    def adapt(self, answer: AnswerDict) -> SearchResponse:
-        return SearchResponse(
-            query=answer['query'],
-            result=answer['result'],
-            source_documents=[
-                DocumenrResponseModel(
-                    page_content=doc.page_content,
-                    metadata=doc.metadata
-                ) for doc in answer['source_documents']
-            ]
-        )
-
-
-@app.post("/search/", response_model=SearchResponse)
-async def search(request: SearchRequest):
-    query = request.q
-    answer: AnswerDict = answer_query(query, session_id=request.session_id or "gateway")
-    response = SearchResultAdapter().adapt(answer)
-    return response
+__all__ = ["app"]

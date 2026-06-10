@@ -1,22 +1,17 @@
-"""검색 게이트웨이.
+"""검색 게이트웨이 (로컬 CLI 용 얇은 래퍼).
 
-루트 FYI 는 더 이상 자체 RAG 파이프라인을 구성하지 않는다. 질의는 단일 RAG 엔진인
-``agent`` (``app.services.chat``) 에 위임하고, 결과를 루트가 쓰던 ``AnswerDict`` 형태
-(``query`` / ``result`` / ``source_documents``) 로 변환해 반환한다.
-
-LLM/임베딩 프로바이더(Claude ↔ Ollama)와 인덱싱은 ``agent`` 쪽 설정/스크립트로 관리한다.
+실제 검색/요약/대화 로직은 단일 RAG 엔진(``app.services.search``)에 있다. 이 모듈은
+``cli.py`` 등 루트에서 쓰던 ``answer_query`` 시그니처와 AnswerDict 형태를 유지한다.
+HTTP API 는 ``app`` 의 ``POST /search`` (watcher.py 가 재노출) 가 담당한다.
 """
 
-from app.services.chat import answer as _agent_answer
+from app.services.search import search as _search
 
 from src.types import AnswerDict
 
 
-def answer_query(query: str, session_id: str = "gateway") -> AnswerDict:
-    """질의를 agent 엔진에 위임하고 결과를 AnswerDict 형태로 매핑한다."""
-    res = _agent_answer(query, session_id=session_id)  # {"answer", "context", ...}
-    return {
-        "query": query,
-        "result": res["answer"],
-        "source_documents": res.get("context", []),
-    }
+def answer_query(
+    query: str, session_id: str = "gateway", summarize: bool = False
+) -> AnswerDict:
+    """질의를 agent 엔진에 위임한다. AnswerDict 형태(dict) 로 반환."""
+    return _search(query, session_id=session_id, summarize=summarize)
