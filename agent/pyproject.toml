@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fyi-agent"
+version = "0.1.0"
+description = "외부 위키 마크다운 문서를 대상으로 채팅 질의응답을 제공하는 RAG 서비스"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.7",
+    "pydantic-settings>=2.3",
+    "langchain>=1.0",
+    "langchain-core>=1.0",
+    "langchain-classic>=1.0",  # 1.0에서 분리된 레거시 RAG 체인(create_retrieval_chain 등) 제공 (rag.py)
+    "langchain-text-splitters>=0.3",
+    "langchain-anthropic>=0.3",
+    "langchain-huggingface>=0.1",
+    "langchain-chroma>=0.1.4",
+    "chromadb>=0.5",
+    "sentence-transformers>=3.0",
+    # torch 2.4.1(베이스 이미지·드라이버 제약)에 맞춰 고정: 5.x 는 float8_e8m0fnu(torch>=2.7) 참조,
+    # 4.50+ 는 torch.load 안전성 검사(CVE-2025-32434)로 bge-m3 의 .bin(safetensors 미제공) 로드를 차단 → 가드 직전 4.49.x.
+    "transformers>=4.41,<4.50",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "httpx>=0.27",
+    "ruff>=0.6",
+]
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

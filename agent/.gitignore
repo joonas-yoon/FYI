@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Local data — 벡터 인덱스 / 임베딩 모델 캐시 (샘플 위키 문서는 커밋 유지)
+data/vectorstore/
+data/hf-cache/
+
+# 크롤링/로컬 위키 문서 — 실제 위키는 외부(/users/wiki)에 마운트되므로 추적하지 않음.
+# 동작 확인용 샘플 문서 1개만 추적.
+data/wiki/*
+!data/wiki/EXAMPLE.md
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
