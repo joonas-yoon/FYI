@@ -54,6 +54,11 @@ pip-delete-this-directory.txt
 # Others
 db/
 *.sqlite3
-*.dbfaiss_index/
+*.db
 *.pkl
 *.faiss
+
+# Vector stores (로컬 인덱스 산출물 - 영속되지만 커밋하지 않음)
+faiss_index/
+vectorstore/
+agent/vectorstore/

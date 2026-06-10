@@ -54,8 +54,9 @@ class Settings(BaseSettings):
     wiki_path: Path = Path("/data/wiki")
     wiki_glob: str = "**/*.md"
 
-    # --- 벡터 스토어 (Chroma) ---
-    vector_store_dir: Path = Path("/data/vectorstore")
+    # --- 벡터 스토어 (Chroma, 디스크 영속) ---
+    # 로컬 실행 기본값은 레포 상대경로. Docker 는 .env/compose 에서 /data/vectorstore 로 오버라이드.
+    vector_store_dir: Path = Path("vectorstore")
     collection_name: str = "fyi_wiki"
 
     # --- 청킹 ---
