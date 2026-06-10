@@ -1,43 +1,22 @@
+"""검색 게이트웨이.
 
-import os
+루트 FYI 는 더 이상 자체 RAG 파이프라인을 구성하지 않는다. 질의는 단일 RAG 엔진인
+``agent`` (``app.services.chat``) 에 위임하고, 결과를 루트가 쓰던 ``AnswerDict`` 형태
+(``query`` / ``result`` / ``source_documents``) 로 변환해 반환한다.
 
-from langchain.chains import RetrievalQA
+LLM/임베딩 프로바이더(Claude ↔ Ollama)와 인덱싱은 ``agent`` 쪽 설정/스크립트로 관리한다.
+"""
 
-from src.setups import load_embedding_model, load_llm_model, setup_documents, setup_vector_store
+from app.services.chat import answer as _agent_answer
+
 from src.types import AnswerDict
-from src.utils import Path
 
 
-CWD = os.path.dirname(os.path.abspath(__file__))
-BASE_DIR = Path(CWD, "..")
-
-WATCH_DIR = Path(BASE_DIR, "examples/")
-
-
-documents = setup_documents(WATCH_DIR)
-print(f"Loaded {len(documents)} documents...\n")  # Debugging
-
-if not documents:
-    print("No documents found. Please add supported files to the target directory.")
-    exit(1)
-
-embeddings = load_embedding_model()
-llm = load_llm_model()
-
-vector_store = setup_vector_store(
-    documents=documents,
-    embeddings=embeddings,
-    save_dir=Path(BASE_DIR, "faiss_index"),
-    index_name=WATCH_DIR.replace("/", "_").replace("\\", "_").strip("_")
-)
-
-qa_chain = RetrievalQA.from_chain_type(
-    llm=llm,
-    chain_type="stuff",
-    retriever=vector_store.as_retriever(),
-    return_source_documents=True,
-)
-
-
-def answer_query(query: str) -> AnswerDict:
-    return qa_chain.invoke({"query": query})
+def answer_query(query: str, session_id: str = "gateway") -> AnswerDict:
+    """질의를 agent 엔진에 위임하고 결과를 AnswerDict 형태로 매핑한다."""
+    res = _agent_answer(query, session_id=session_id)  # {"answer", "context", ...}
+    return {
+        "query": query,
+        "result": res["answer"],
+        "source_documents": res.get("context", []),
+    }

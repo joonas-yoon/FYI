@@ -12,6 +12,10 @@ app = FastAPI()
 
 class SearchRequest(BaseModel):
     q: str = Body(..., description="The search query string")
+    session_id: str | None = Body(
+        default=None,
+        description="대화 세션 ID. 지정하면 멀티턴 이력이 유지됩니다. 미지정 시 단일턴.",
+    )
 
 
 class DocumenrResponseModel(BaseModel):
@@ -42,6 +46,6 @@ class SearchResultAdapter:
 @app.post("/search/", response_model=SearchResponse)
 async def search(request: SearchRequest):
     query = request.q
-    answer: AnswerDict = answer_query(query)
+    answer: AnswerDict = answer_query(query, session_id=request.session_id or "gateway")
     response = SearchResultAdapter().adapt(answer)
     return response
